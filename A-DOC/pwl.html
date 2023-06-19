@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Point Light Walker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div style="margin: 20px 0px;"><input type="file" id="fileInput">
+        </div>
+        <div>
+            <div id="canvas"></div>
+        </div>
+    </div>
+    <script>
+        let datas = []
+        // 加载网络数据方法, 可以设置为 window.onload
+        const loadDataFile = () => {
+            let requestOptions = {
+                method: 'GET'
+            }
+            // 第一个参就是服务器上的文件地址
+            fetch("walker.txt", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    // result 就是内容
+                    parseData(result.trim())
+                })
+                .catch(error => console.log('error', error));
+        }
+        const convert3dTo2d = ({ x, y, z }, angle) => {
+            // Convert the angle to radians
+            let angleRad = angle * Math.PI / 180;
+            // Rotate the point around the y-axis
+            let newX = -x * Math.cos(angleRad) + z * Math.sin(angleRad);
+            let newY = -y;
+            let newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+            // Project the 3D point to 2D
+            return [newX, newY];
+        }
+        // Data parsing
+        const parseData = dataStr => {
+            try {
+                let split = dataStr.split('\n')
+                for (let i = 0; i < split.length; i += 3) {
+                    let xList = split[i].trim().split(' ')
+                    let yList = split[i + 1].trim().split(' ')
+                    let zList = split[i + 2].trim().split(' ')
+                    let tmp = new Array(xList.length).fill(0).map(item => ({}))
+                    xList.forEach((item, index) => {
+                    tmp[index].x = parseFloat(item)
+                    })
+                    yList.forEach((item, index) => {
+                    tmp[index].y = parseFloat(item)
+                    })
+                    zList.forEach((item, index) => {
+                    tmp[index].z = parseFloat(item)
+                    })
+                    datas.push(tmp)
+                }
+            } catch (error) {
+            console.error("An error occurred while parsing the data: ", error); //不确定是txt文件的问题还是代码的问题
+            }
+            
+        }
+        // 文件读取 - input - todo1: 在code里面写入文件
+        const readFile = async () => {
+            let reader = new FileReader();
+            reader.readAsText(document.getElementById('fileInput').files[0]);
+            reader.onload = function () {
+                parseData(this.result.trim())
+            }
+        }
+
+        let index = 0
+        const CENTER_X = 0
+        const CENTER_Y = 125
+        const POINT_MULTIPLE = 12
+
+        // PLW origin pos + Canvas setup
+        const convertP5Xy = (x, y) => {
+            return [x * POINT_MULTIPLE + CENTER_X, y * POINT_MULTIPLE + CENTER_Y,]
+        }
+        function setup() {
+            let canvas = createCanvas(800, 400);
+            canvas.parent('canvas')
+            background(225)
+
+            let fileInput = document.getElementById('fileInput')
+            fileInput.onchange = () => {
+                readFile()
+            }
+        }
+
+        function draw() {
+            background(225)
+            fill(0)
+            frameRate(50) // Frame rate
+
+            if (datas.length != 0) {
+                let points = datas[index++]
+                for (const point of points) {
+                    const [x1, y1] = convert3dTo2d(point, 90)
+                    const [x, y] = convertP5Xy(x1, y1)
+                    ellipse(x, y, 5)
+                }
+                if (index >= datas.length) {
+                    index = 0
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

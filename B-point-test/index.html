@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        let datas = []
+        const convert3dTo2d = (x, y, z, r) => {
+            return [x, y]
+        }
+        // 数据解析
+        const parseData = dataStr => {
+            let datas = []
+            let split = dataStr.split('\n')
+            for (let i = 0; i < split.length; i += 3) {
+                let xList = split[i].trim().split(' ')
+                let yList = split[i + 1].trim().split(' ')
+                let zList = split[i + 2].trim().split(' ')
+                let tmp = new Array(xList.length).fill(0).map(item => ({}))
+                xList.forEach((item, index) => {
+                    tmp[index].x = parseFloat(item)
+                })
+                yList.forEach((item, index) => {
+                    tmp[index].y = parseFloat(item)
+                })
+                zList.forEach((item, index) => {
+                    tmp[index].z = parseFloat(item)
+                })
+                datas.push(tmp)
+            }
+            debugger
+        }
+        // 文件读取
+        const fileInput = () => {
+            let reader = new FileReader();
+            reader.readAsText(document.getElementById('fileInput').files[0]);
+            reader.onload = function () {
+                parseData(this.result.trim())
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div>
+        <div><input type="file" id="fileInput"><button onclick="fileInput()">读 取</button></div>
+    </div>
+</body>
+
+</html>
